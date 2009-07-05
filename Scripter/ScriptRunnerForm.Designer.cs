@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ScriptRunnerForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.miAddScript = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -66,9 +67,10 @@
             this.ClientSize = new System.Drawing.Size(748, 70);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "ScriptRunnerForm";
-            this.Text = "ScriptRunnerForm";
+            this.Text = "Скриптер | © Эспада";
             this.Load += new System.EventHandler(this.ScriptRunnerForm_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

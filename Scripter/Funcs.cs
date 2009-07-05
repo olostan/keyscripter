@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Threading;
+
 namespace Scripter
 {
     using System;
@@ -34,9 +37,12 @@ namespace Scripter
         private const uint MOUSEEVENTF_WHEEL = 0x800;
         private const uint MOUSEEVENTF_XDOWN = 0x80;
         private const uint MOUSEEVENTF_XUP = 0x100;
-        public const uint WA_ACTIVE = 0;
-        public const uint WA_INACTIVE = 1;
+        public const int WA_INACTIVE = 0;
+        public const int WA_ACTIVE = 1;
+        public const int WA_CLICKACTIVE = 2;
         public const uint WM_ACTIVATE = 6;
+        public const uint WM_SETFOCUS = 7;
+        public const uint WM_ACTIVATEAPP = 0x1c;
         public const uint WM_CHAR = 0x102;
         private const int WM_KEYDOWN = 0x100;
         private const int WM_KEYUP = 0x101;
@@ -124,15 +130,19 @@ namespace Scripter
         private static extern int IsWindowVisible(int hwnd);
         public static void MouseClick(uint targetWindow, int btn)
         {
-            PostMessage(targetWindow, 6, 0, 0);
-            INPUT input = new INPUT();
-            input.type = 0;
-            input.mi = new MOUSEINPUT();
-            input.mi.dwFlags = MouseEventFByButton(btn, true);
-            input.mi.dwExtraInfo = 0;
-            input.mi.mouseData = 0;
-            input.mi.time = 0;
-            uint num = SendInput(1, ref input, Marshal.SizeOf(input));
+            PostMessageSafe(targetWindow, 6, 0, 0);
+            var input = new INPUT
+                            {
+                                type = 0,
+                                mi = new MOUSEINPUT
+                                         {
+                                             dwFlags = MouseEventFByButton(btn, true),
+                                             dwExtraInfo = 0,
+                                             mouseData = 0,
+                                             time = 0
+                                         }
+                            };
+            var num = SendInput(1, ref input, Marshal.SizeOf(input));
             Trace.WriteLine("result:" + num);
             if (num != 1)
             {
@@ -161,15 +171,59 @@ namespace Scripter
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr OpenProcess(uint dwDesiredAccess, int bInheritHandle, uint dwProcessId);
-        [DllImport("user32.dll")]
-        public static extern int PostMessage(uint hWnd, uint Msg, uint wParam, uint lParam);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool PostMessage(HandleRef hWnd, uint Msg, IntPtr wParam,IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool DefWindowProc(HandleRef hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+        private static void PostMessageSafe(uint hWnd, uint msg, uint wParam, uint lParam)
+        {
+            string wrapper = "asd";
+            bool returnValue = PostMessage(new HandleRef(wrapper,new IntPtr(hWnd)), msg, new IntPtr(wParam), new IntPtr(lParam));
+            if (!returnValue)
+            {
+                // An error occured
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+        }
+
+        private static void DefWindowProcSafe(uint hWnd, uint msg, uint wParam, uint lParam)
+        {
+            string wrapper = "asd";
+            PostMessageSafe(hWnd, msg, wParam, lParam);
+            bool returnValue = DefWindowProc(new HandleRef(wrapper, new IntPtr(hWnd)), msg, new IntPtr(wParam), new IntPtr(lParam));
+            if (!returnValue)
+            {
+                // An error occured
+                //throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+        }    
+
         [DllImport("User32.dll")]
         private static extern uint SendInput(uint numberOfInputs, ref INPUT input, int structSize);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        internal static extern uint MapVirtualKey(uint uCode, int nMapType);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+        
         public static void SendKeyToWindow(uint hWnd, uint code)
         {
-            PostMessage(hWnd, 6, 0, 0);
-            PostMessage(hWnd, 0x100, code, 0);
-            PostMessage(hWnd, 6, 1, 0);
+           //Trace.WriteLine("Sending "+code+" to "+hWnd);            
+
+            SendMessage(hWnd, WM_ACTIVATE, WA_ACTIVE, 0);
+            
+            
+            SendMessage(hWnd, WM_KEYDOWN, code, 1 + (MapVirtualKey(code, 0) << 16));
+            //Thread.Sleep(150);
+            //SendMessage(hWnd, WM_KEYUP, code, DownBase + (MapVirtualKey(code, 0) << 16 + 3 << 30));
+            //Thread.Sleep(50);
+            SendMessage(hWnd, WM_ACTIVATE, WA_INACTIVE, 0);
+            //SetForegroundWindow(new IntPtr(hwnd));
         }
 
         [DllImport("user32.dll")]
