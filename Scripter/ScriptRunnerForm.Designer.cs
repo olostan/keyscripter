@@ -32,13 +32,15 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.miAddScript = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.конфигурацияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miAddScript});
+            this.miAddScript,
+            this.конфигурацияToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(748, 24);
@@ -59,6 +61,13 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(748, 46);
             this.panel1.TabIndex = 1;
+            // 
+            // конфигурацияToolStripMenuItem
+            // 
+            this.конфигурацияToolStripMenuItem.Name = "конфигурацияToolStripMenuItem";
+            this.конфигурацияToolStripMenuItem.Size = new System.Drawing.Size(100, 20);
+            this.конфигурацияToolStripMenuItem.Text = "Конфигурация";
+            this.конфигурацияToolStripMenuItem.Click += new System.EventHandler(this.конфигурацияToolStripMenuItem_Click);
             // 
             // ScriptRunnerForm
             // 
@@ -84,5 +93,6 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem miAddScript;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.ToolStripMenuItem конфигурацияToolStripMenuItem;
     }
 }

@@ -39,6 +39,14 @@ namespace Scripter
         private void ScriptRunnerForm_Load(object sender, EventArgs e)
         {
             AddRunner();
+            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            this.Text += string.Format(" (v {0}.{1} build {2} rev {3})",v.Major,v.Minor,v.Build,v.Revision);
+            
+        }
+
+        private void конфигурацияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            (new ConfigForm()).ShowDialog();
         }
 
 

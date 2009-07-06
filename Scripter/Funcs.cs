@@ -188,7 +188,7 @@ namespace Scripter
                 throw new Win32Exception(Marshal.GetLastWin32Error());
             }
         }
-
+        
         private static void DefWindowProcSafe(uint hWnd, uint msg, uint wParam, uint lParam)
         {
             string wrapper = "asd";
@@ -200,6 +200,10 @@ namespace Scripter
                 //throw new Win32Exception(Marshal.GetLastWin32Error());
             }
         }    
+        private static void SendMessageSafe(uint hWnd,uint msg, uint wParam, uint lParam)
+        {
+            SendMessage(hWnd, msg, wParam, lParam);
+        }
 
         [DllImport("User32.dll")]
         private static extern uint SendInput(uint numberOfInputs, ref INPUT input, int structSize);
@@ -210,19 +214,23 @@ namespace Scripter
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool SetForegroundWindow(IntPtr hWnd);
-        
+
+        private delegate void SendOrPostFunc(uint hWnd, uint msg, uint lparam, uint wparam);
+
         public static void SendKeyToWindow(uint hWnd, uint code)
         {
-           //Trace.WriteLine("Sending "+code+" to "+hWnd);            
+            //Trace.WriteLine("Sending "+code+" to "+hWnd);
+            var sendFunc = Config.Instance.SendMode ? (SendOrPostFunc) SendMessageSafe : PostMessageSafe;
 
-            SendMessage(hWnd, WM_ACTIVATE, WA_ACTIVE, 0);
-            
-            
-            SendMessage(hWnd, WM_KEYDOWN, code, 1 + (MapVirtualKey(code, 0) << 16));
+            sendFunc(hWnd, WM_ACTIVATE, WA_ACTIVE, 0);
+
+
+            sendFunc(hWnd, WM_KEYDOWN, code, 1 + (MapVirtualKey(code, 0) << 16));
             //Thread.Sleep(150);
-            //SendMessage(hWnd, WM_KEYUP, code, DownBase + (MapVirtualKey(code, 0) << 16 + 3 << 30));
-            //Thread.Sleep(50);
-            SendMessage(hWnd, WM_ACTIVATE, WA_INACTIVE, 0);
+            if (Config.Instance.SendKeyUp) sendFunc(hWnd, WM_KEYUP, code, 1 + (MapVirtualKey(code, 0) << 16 + 3 << 30));
+            var pause = Config.Instance.PauseAfterSend;
+            if (pause!=0) Thread.Sleep(pause);
+            sendFunc(hWnd, WM_ACTIVATE, WA_INACTIVE, 0);
             //SetForegroundWindow(new IntPtr(hwnd));
         }
 
