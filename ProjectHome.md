@@ -1,0 +1,1 @@
+Tool for sending key strokes into background windows
